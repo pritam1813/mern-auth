@@ -1,0 +1,17 @@
+{
+  "name": "AuthProject",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "repository": "https://github.com/pritam1813/mern-auth.git",
+  "author": "Pritam Dhara <pritam1813@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "dev": "nodemon api/index.js",
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
