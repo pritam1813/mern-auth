@@ -1,4 +1,5 @@
 import Header from "./Header";
 import OAuth from "./OAuth";
+import PrivateRoute from "./PrivateRoute";
 
-export { Header, OAuth };
+export { Header, OAuth, PrivateRoute };
