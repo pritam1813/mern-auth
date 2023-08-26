@@ -1,3 +1,4 @@
 import Header from "./Header";
+import OAuth from "./OAuth";
 
-export { Header };
+export { Header, OAuth };
