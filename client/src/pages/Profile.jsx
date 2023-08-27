@@ -2,10 +2,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  deleteObject,
   getDownloadURL,
   getStorage,
-  listAll,
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
@@ -17,6 +15,7 @@ import {
   deleteUserStart,
   deleteUserFailure,
   deleteUserSuccess,
+  signOut,
 } from "../redux/user/userSlice";
 
 export default function Profile() {
@@ -105,6 +104,15 @@ export default function Profile() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/signout");
+      dispatch(signOut());
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Profile</h1>
@@ -173,9 +181,9 @@ export default function Profile() {
         >
           Delete Account
         </span>
-        <Link to="/signout">
-          <span className="text-blue-500">Sign Out</span>
-        </Link>
+        <span className="text-blue-500 cursor-pointer" onClick={handleSignOut}>
+          Sign Out
+        </span>
       </div>
       <p className="text-red-700 mt-5">{error && "Something Went Wrong"}</p>
       <p className="text-green-700 mt-5">
