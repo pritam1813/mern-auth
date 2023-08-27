@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -8,6 +8,11 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+} from "../redux/user/userSlice";
 
 export default function Profile() {
   const fileRef = useRef(null);
@@ -15,8 +20,10 @@ export default function Profile() {
   const [imagePercentage, setImagePercentage] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [formData, setFormData] = useState({});
+  const [updateSuccess, setUpdateSuccess] = useState(false);
 
-  const { currentUser } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   useEffect(() => {
     if (image) {
       handleFileUpload(image);
@@ -46,8 +53,6 @@ export default function Profile() {
     );
   };
 
-  const { loading, error } = useSelector((state) => state.user);
-
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -55,7 +60,25 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-    } catch (error) {}
+      dispatch(updateUserStart());
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+
+      if (data.success === false) {
+        dispatch(updateUserFailure(data));
+        return;
+      }
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -126,6 +149,9 @@ export default function Profile() {
         </Link>
       </div>
       <p className="text-red-700 mt-5">{error && "Something Went Wrong"}</p>
+      <p className="text-green-700 mt-5">
+        {updateSuccess && "Updated Succcessfully !!"}
+      </p>
     </div>
   );
 }
