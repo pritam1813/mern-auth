@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "nodemon api/index.js",
     "start": "node api/index.js",
-    "concurrently": "concurrently \"yarn dev\" \"cd client && yarn dev\" "
+    "concurrently": "concurrently \"yarn dev\" \"cd client && yarn dev\" ",
+    "build": "yarn && yarn --prefix client && yarn build --prefix client"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
