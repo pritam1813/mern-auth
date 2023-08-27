@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { OAuth } from "../components";
+import { useSelector } from "react-redux";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
   const [error, serError] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useSelector((state) => state.user);
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -35,7 +38,9 @@ export default function SignUp() {
       console.log(error);
     }
   };
-
+  if (currentUser) {
+    return <Navigate to="/profile" />;
+  }
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Sign Up</h1>

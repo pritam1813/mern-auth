@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { OAuth } from "../components";
 import {
   loginStart,
@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 export default function Login() {
   const [formData, setFormData] = useState({});
-  const { loading, error } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -40,6 +40,10 @@ export default function Login() {
       dispatch(loginFailure(error));
     }
   };
+
+  if (currentUser) {
+    return <Navigate to="/profile" />;
+  }
 
   return (
     <div className="p-3 max-w-lg mx-auto">
