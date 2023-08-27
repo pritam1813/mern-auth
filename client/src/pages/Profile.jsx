@@ -2,8 +2,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
+  deleteObject,
   getDownloadURL,
   getStorage,
+  listAll,
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
@@ -12,6 +14,9 @@ import {
   updateUserStart,
   updateUserSuccess,
   updateUserFailure,
+  deleteUserStart,
+  deleteUserFailure,
+  deleteUserSuccess,
 } from "../redux/user/userSlice";
 
 export default function Profile() {
@@ -32,7 +37,8 @@ export default function Profile() {
 
   const handleFileUpload = async (image) => {
     const storage = getStorage(app);
-    const fileName = new Date().getTime() + image.name;
+    const fileExtension = image.name.split(".").pop();
+    const fileName = `${currentUser._id}/avatar.${fileExtension}`;
     const storageRef = ref(storage, fileName);
     const uploadTask = uploadBytesResumable(storageRef, image);
     uploadTask.on(
@@ -81,6 +87,24 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data));
+        return;
+      }
+      dispatch(deleteUserSuccess(data));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Profile</h1>
@@ -93,9 +117,9 @@ export default function Profile() {
           onChange={(e) => setImage(e.target.files[0])}
         />
         <img
-          src={currentUser.avatar}
-          alt="Profile Avatar"
-          className="h-24 w-24 self-center cursor-pointer rounded-full object-cover "
+          src={formData.avatar || currentUser.avatar}
+          alt="Profile Picture"
+          className="h-24 w-24 self-center cursor-pointer rounded-full object-cover"
           onClick={() => fileRef.current.click()}
         />
         <p className="text-sm self-center">
@@ -143,7 +167,12 @@ export default function Profile() {
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete Account</span>
+        <span
+          className="text-red-700 cursor-pointer"
+          onClick={handleDeleteUser}
+        >
+          Delete Account
+        </span>
         <Link to="/signout">
           <span className="text-blue-500">Sign Out</span>
         </Link>
