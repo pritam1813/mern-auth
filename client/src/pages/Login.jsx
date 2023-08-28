@@ -13,6 +13,7 @@ export default function Login() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const SITE_KEY = import.meta.env.VITE_SITE_KEY;
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -20,6 +21,16 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let recaptchaToken;
+    await new Promise((resolve) => {
+      grecaptcha.enterprise.ready(async () => {
+        recaptchaToken = await grecaptcha.enterprise.execute(SITE_KEY, {
+          action: "LOGIN",
+        });
+        resolve();
+      });
+    });
+
     try {
       dispatch(loginStart());
       const res = await fetch("/api/auth/login", {
@@ -27,7 +38,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
       const data = await res.json();
       if (data.success === false) {
@@ -66,7 +77,10 @@ export default function Login() {
         <button
           disabled={loading}
           className="bg-slate-700 text-white p-3 rounded-lg
-    uppercase hover:opacity-95 disabled:opacity-80"
+    uppercase hover:opacity-95 disabled:opacity-80 g-recaptcha"
+          data-sitekey={SITE_KEY}
+          data-callback="onSubmit"
+          data-action="LOGIN"
         >
           {loading ? "Loading..." : "Sign In"}
         </button>

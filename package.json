@@ -26,7 +26,8 @@
     "express": "^4.18.2",
     "generate-password": "^1.7.0",
     "jsonwebtoken": "^9.0.1",
-    "mongoose": "^7.4.3"
+    "mongoose": "^7.4.3",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "concurrently": "^8.2.1"

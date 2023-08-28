@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from "bcryptjs";
+import { createAssessment } from "../utils/reCaptcha.js";
 
 export const test = (req, res) => {
   res.json({
@@ -19,21 +20,32 @@ export const updateUser = async (req, res, next) => {
     if (req.body.password) {
       req.body.password = bcryptjs.hashSync(req.body.password, 10);
     }
-    const { username, email, avatar } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          username,
-          email,
-          password: req.body.password,
-          avatar,
+    const { username, email, avatar, recaptchaToken } = req.body;
+    const recaptcha = await createAssessment(recaptchaToken, "UPDATE_USER");
+
+    if (recaptcha.riskAnalysis.score >= 0.5) {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            username,
+            email,
+            password: req.body.password,
+            avatar,
+          },
         },
-      },
-      { new: true }
-    );
-    const { password, ...rest } = updatedUser._doc;
-    res.status(200).json(rest);
+        { new: true }
+      );
+      const { password, ...rest } = updatedUser._doc;
+      res.status(200).json(rest);
+    } else {
+      return next(
+        errorHandler(
+          409,
+          "Cannot verify recaptcha. Please refresh and try again !"
+        )
+      );
+    }
   } catch (error) {
     next(error);
   }

@@ -25,6 +25,7 @@ export default function Profile() {
   const [imageError, setImageError] = useState(false);
   const [formData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const SITE_KEY = import.meta.env.VITE_SITE_KEY;
 
   const dispatch = useDispatch();
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -64,6 +65,16 @@ export default function Profile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let recaptchaToken;
+    await new Promise((resolve) => {
+      grecaptcha.enterprise.ready(async () => {
+        recaptchaToken = await grecaptcha.enterprise.execute(SITE_KEY, {
+          action: "UPDATE_USER",
+        });
+        resolve();
+      });
+    });
+
     try {
       dispatch(updateUserStart());
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
@@ -71,7 +82,7 @@ export default function Profile() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
       const data = await res.json();
 
@@ -169,7 +180,10 @@ export default function Profile() {
         <button
           disabled={loading}
           className="bg-slate-700 text-white p-3 rounded-lg
-    uppercase hover:opacity-95 disabled:opacity-80"
+    uppercase hover:opacity-95 disabled:opacity-80 g-recaptcha"
+          data-sitekey={SITE_KEY}
+          data-callback="onSubmit"
+          data-action="UPDATE_USER"
         >
           {loading ? "Loading..." : "Update"}
         </button>

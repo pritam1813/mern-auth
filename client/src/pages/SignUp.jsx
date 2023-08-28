@@ -4,9 +4,11 @@ import { OAuth } from "../components";
 import { useSelector } from "react-redux";
 
 export default function SignUp() {
+  const SITE_KEY = import.meta.env.VITE_SITE_KEY;
   const [formData, setFormData] = useState({});
   const [error, serError] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
 
@@ -16,6 +18,16 @@ export default function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let recaptchaToken;
+    await new Promise((resolve) => {
+      grecaptcha.enterprise.ready(async () => {
+        recaptchaToken = await grecaptcha.enterprise.execute(SITE_KEY, {
+          action: "SIGNUP",
+        });
+        resolve();
+      });
+    });
+
     try {
       setLoading(true);
       const res = await fetch("/api/auth/signup", {
@@ -23,7 +35,7 @@ export default function SignUp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
       const data = await res.json();
       setLoading(false);
@@ -38,9 +50,11 @@ export default function SignUp() {
       console.log(error);
     }
   };
+
   if (currentUser) {
     return <Navigate to="/profile" />;
   }
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Sign Up</h1>
@@ -69,7 +83,10 @@ export default function SignUp() {
         <button
           disabled={loading}
           className="bg-slate-700 text-white p-3 rounded-lg
-        uppercase hover:opacity-95 disabled:opacity-80"
+        uppercase hover:opacity-95 disabled:opacity-80 g-recaptcha"
+          data-sitekey={SITE_KEY}
+          data-callback="onSubmit"
+          data-action="SIGNUP"
         >
           {loading ? "Loading..." : "SignUp"}
         </button>
